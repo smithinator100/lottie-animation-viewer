@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottie Animation Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js"></script>
+    <style>
+
+        html{
+            background-color: #E4E8F3;
+        }
+        body {
+            height: 100vh;
+            margin: 0;
+        }
+        #lottie {
+            width: 100%;
+            height: 588px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-end;
+            filter: drop-shadow(0 -5px 10px rgba(0, 0, 0, 0.1));
+        }
+        #lottie svg {
+            width: 500px !important;
+            height: 456px !important;
+            position: absolute;
+            left: 0 !important;
+            transform: none !important;
+        }
+        .center-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -90%);
+            font-family: 'Poppins', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            z-index: 10;
+        }
+        h1 {
+            line-height: 1.2;
+            font-size: 48px;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            
+        }
+        .shadow-controls {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            border: 1px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            display: inline-block;
+            width: 600px;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .control-label {
+            min-width: 80px;
+            color: #569cd6;
+        }
+        
+        .control-input {
+            background-color: #2d2d30;
+            border: 1px solid #404040;
+            color: #d4d4d4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 60px;
+        }
+        
+        .control-input:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+        
+        .color-input {
+            width: 40px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .css-output {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #252526;
+            border-radius: 4px;
+            border: 1px solid #404040;
+            font-size: 12px;
+            color: #ce9178;
+        }
+        
+        .copy-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #0e639c;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        
+        .copy-button:hover {
+            background-color: #1177bb;
+        }
+        
+        .copy-button:active {
+            background-color: #005a9e;
+        }
+        
+        .copy-button.copied {
+            background-color: #16825d;
+        }
+    </style>
+</head>
+<body>
+    <div class="center-text">
+        <h1>Adding shadows to lottie file in HTML</h1>
+        <div class="shadow-controls">
+            <div class="control-group">
+                <span class="control-label">X Offset:</span>
+                <input type="number" id="offsetX" class="control-input" value="0">
+                <span>px</span>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Y Offset:</span>
+                <input type="number" id="offsetY" class="control-input" value="-5">
+                <span>px</span>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Blur:</span>
+                <input type="number" id="blur" class="control-input" value="10" min="0">
+                <span>px</span>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Color:</span>
+                <input type="color" id="shadowColor" class="color-input" value="#000000">
+            </div>
+            <div class="control-group">
+                <span class="control-label">Opacity:</span>
+                <input type="range" id="opacity" class="control-input" value="0.1" min="0" max="1" step="0.01" style="width: 100px;">
+                <span id="opacityValue">0.1</span>
+            </div>
+            <div class="css-output" id="cssOutput">
+                filter: drop-shadow(0px -5px 10px rgba(0, 0, 0, 0.1));
+            </div>
+            <button class="copy-button" id="copyButton" onclick="copyCSS()">Copy CSS</button>
+        </div>
+    </div>
+    <div id="lottie"></div>
+
+    <script>
+        var loopCount = 0;
+        var maxLoops = 5;
+        var animation = lottie.loadAnimation({
+            container: document.getElementById('lottie'), // the dom element that will contain the animation
+            renderer: 'svg',
+            loop: false, // disable default looping
+            autoplay: true,
+            path: 'lottie/OB-2.json' // the path to the animation json
+        });
+
+        animation.addEventListener('complete', function() {
+            loopCount++;
+            if (loopCount < maxLoops) {
+                animation.goToAndPlay(0, true);
+            } else {
+                setTimeout(function() {
+                    loopCount = 0;
+                    animation.goToAndPlay(0, true);
+                }, 10000);
+            }
+        });
+
+        // Shadow control functionality
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function updateShadow() {
+            const offsetX = document.getElementById('offsetX').value;
+            const offsetY = document.getElementById('offsetY').value;
+            const blur = document.getElementById('blur').value;
+            const color = document.getElementById('shadowColor').value;
+            const opacity = document.getElementById('opacity').value;
+            
+            // Update opacity display
+            document.getElementById('opacityValue').textContent = opacity;
+            
+            // Convert hex to rgba
+            const rgb = hexToRgb(color);
+            const rgba = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+            
+            // Create the filter string
+            const filterValue = `drop-shadow(${offsetX}px ${offsetY}px ${blur}px ${rgba})`;
+            
+            // Apply the filter to the lottie element
+            document.getElementById('lottie').style.filter = filterValue;
+            
+            // Update the CSS output display
+            document.getElementById('cssOutput').textContent = `filter: ${filterValue};`;
+        }
+
+        // Add event listeners to all controls
+        document.getElementById('offsetX').addEventListener('input', updateShadow);
+        document.getElementById('offsetY').addEventListener('input', updateShadow);
+        document.getElementById('blur').addEventListener('input', updateShadow);
+        document.getElementById('shadowColor').addEventListener('input', updateShadow);
+        document.getElementById('opacity').addEventListener('input', updateShadow);
+
+        // Initialize with current values
+        updateShadow();
+
+        // Copy CSS functionality
+        function copyCSS() {
+            const cssText = document.getElementById('cssOutput').textContent;
+            navigator.clipboard.writeText(cssText).then(function() {
+                const button = document.getElementById('copyButton');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = cssText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const button = document.getElementById('copyButton');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
